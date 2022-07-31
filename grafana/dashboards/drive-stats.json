@@ -1025,6 +1025,89 @@
       "timeShift": null,
       "title": "Top Destinations",
       "type": "bargauge"
+    },
+    {
+      "datasource": "TeslaMate",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "$__cell_0: $__cell_1",
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-blue",
+                "value": null
+              },
+              {
+                "color": "light-red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 33,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "7.1.4",
+      "targets": [
+        {
+          "datasource": "TeslaMate",
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "Select to_char(charging.date :: DATE, 'dd-mm-yyyy'), addr.name, (charging.curr_odometer - charging.prev_odometer) as distance from (\r\n                                                                    Select p.id,\r\n                                                                           p.date as date,\r\n                                                                           p.odometer             as curr_odometer,\r\n                                                                           LAG(p.odometer) OVER w AS prev_odometer,\r\n                                                                           cp.address_id\r\n                                                                    from charging_processes cp\r\n                                                                             inner join positions p on cp.position_id = p.id\r\n                                                                             where $__timeFilter(date) AND p.car_id = $car_id\r\n                                                                        WINDOW w as (ORDER BY p.date asc)\r\n                                                                ) as charging\r\ninner join addresses addr on addr.id = charging.address_id\r\nwhere charging.curr_odometer is not null and charging.prev_odometer is not null\r\norder by distance DESC\r\nLIMIT 10",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "latitude"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "addresses",
+          "timeColumn": "inserted_at",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Longest drives without charging",
+      "type": "bargauge"
     }
   ],
   "refresh": false,
